@@ -1,6 +1,4 @@
 /* static/js/script.js */
-// APIベースURL
-const API_BASE = '/api';
 
 // DOM要素
 let prefectureInput, titleInput, loadingSection, resultSection, errorSection, seichiGrid, statsSection, titleList;
@@ -29,18 +27,25 @@ document.addEventListener('DOMContentLoaded', function() {
     prefectureInput?.addEventListener('keypress', handleKeyPress);
     titleInput?.addEventListener('keypress', handleKeyPress);
 
-    // タイトルリストを読み込む
+    // タイトルリストを読み込む (仮のダミーデータ)
+    // サーバーから取得する場合は、別途エンドポイントが必要です
     loadTitles();
 });
 
 // タイトルリストをサーバーから読み込んでdatalistに設定
 async function loadTitles() {
     try {
-        const response = await fetch(`${API_BASE}/get_titles`);
-        const data = await response.json();
-        if (!data.error && titleList) {
-            titleList.innerHTML = data.titles.map(title => `<option value="${title}">`).join('');
+        // 仮のダミーデータ。実際にはサーバーから取得するエンドポイントが必要です。
+        const dummyTitles = ["君の名は。", "天気の子", "エヴァンゲリオン"];
+        if (titleList) {
+            titleList.innerHTML = dummyTitles.map(title => `<option value="${title}">`).join('');
         }
+        // サーバーから取得する場合の例 (app.pyに /get_titles エンドポイントが必要)
+        // const response = await fetch('/get_titles');
+        // const data = await response.json();
+        // if (!data.error && titleList) {
+        //     titleList.innerHTML = data.titles.map(title => `<option value="${title}">`).join('');
+        // }
     } catch (error) {
         console.error('タイトルリストの読み込みエラー:', error);
     }
@@ -95,16 +100,17 @@ async function searchSeichi() {
     hideResults();
 
     try {
-        const response = await fetch(`${API_BASE}/search_seichi?${query}`);
+        const response = await fetch(`/search?${query}`);
         const data = await response.json();
 
         hideLoading();
 
         if (data.error) {
-            showError(data.message);
+            showError(data.error);
             return;
         }
 
+        // サーバーから直接聖地リストが返されることを期待
         displayResults(data);
 
     } catch (error) {
@@ -136,13 +142,14 @@ function searchTitle(titleName) {
 function displayResults(data) {
     // 統計情報の表示
     if (statsSection) {
-        const animeCount = data.seichi_list.filter(s => s.category.includes('アニメ')).length;
-        const movieCount = data.seichi_list.filter(s => s.category.includes('映画')).length;
-        const dramaCount = data.seichi_list.filter(s => s.category.includes('ドラマ')).length;
+        // dataが直接聖地リストであることを期待
+        const animeCount = data.filter(s => s.category && s.category.includes('アニメ')).length;
+        const movieCount = data.filter(s => s.category && s.category.includes('映画')).length;
+        const dramaCount = data.filter(s => s.category && s.category.includes('ドラマ')).length;
 
         statsSection.innerHTML = `
             <div class="stat-item">
-                <div class="stat-number">${data.total_count || data.seichi_list.length}</div>
+                <div class="stat-number">${data.length}</div>
                 <div>発見された聖地</div>
             </div>
             <div class="stat-item">
@@ -158,7 +165,7 @@ function displayResults(data) {
 
     // 聖地カードの表示
     if (seichiGrid) {
-        seichiGrid.innerHTML = data.seichi_list.map(seichi => createSeichiCard(seichi)).join('');
+        seichiGrid.innerHTML = data.map(seichi => createSeichiCard(seichi)).join('');
     }
 
     showResults();
@@ -189,6 +196,7 @@ function createSeichiCard(seichi) {
 
 // カテゴリークラス取得
 function getCategoryClass(category) {
+    if (!category) return ''; // categoryがundefinedの場合のガード
     if (category.includes('アニメ映画')) return 'anime-movie-tag';
     if (category.includes('アニメ')) return 'anime-tag';
     if (category.includes('映画')) return 'movie-tag';
@@ -198,6 +206,7 @@ function getCategoryClass(category) {
 
 // カテゴリー絵文字取得
 function getCategoryEmoji(category) {
+    if (!category) return '🌟'; // categoryがundefinedの場合のガード
     if (category.includes('アニメ映画')) return '🎬';
     if (category.includes('アニメ')) return '📺';
     if (category.includes('映画')) return '🎬';

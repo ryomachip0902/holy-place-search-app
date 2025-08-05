@@ -8,12 +8,14 @@ app = Flask(__name__)
 # 環境変数からAPIキーを取得
 API_KEY = os.environ.get('YOUTUBE_API_KEY')
 
-def get_youtube_service():
-    """YouTube Data APIのサービスオブジェクトを構築して返す"""
-    # APIキーが設定されていない場合はエラーを発生させる
+# スプレッドシートID
+SPREADSHEET_ID = '13_ULI6vv8fcM5JKlObL3Su58pDAu7iJu4r7CILhxIWk'
+
+def get_sheets_service():
+    """Google Sheets APIのサービスオブジェクトを構築して返す"""
     if not API_KEY:
-        raise ValueError("YOUTUBE_API_KEY environment variable not set.")
-    return build('youtube', 'v3', developerKey=API_KEY)
+        raise ValueError("API_KEY environment variable not set.")
+    return build('sheets', 'v4', developerKey=API_KEY)
 
 @app.route('/')
 def index():
@@ -22,61 +24,57 @@ def index():
 @app.route('/search')
 def search():
     try:
-        youtube = get_youtube_service()
+        sheets_service = get_sheets_service()
         
-        query = request.args.get('query', '')
-        if not query:
-            return jsonify({'error': 'Query parameter is required'}), 400
-
-        # 1. 最初のAPI呼び出し: 動画を検索してIDのリストを取得
-        search_response = youtube.search().list(
-            q=query,
-            part='snippet',
-            type='video',
-            maxResults=25  # 少し多めに取得してライブ配信が見つかる確率を上げる
+        # スプレッドシートからデータを読み込む
+        range_name = '聖地リスト!A:Z' 
+        result = sheets_service.spreadsheets().values().get(
+            spreadsheetId=SPREADSHEET_ID,
+            range=range_name
         ).execute()
-
-        search_items = search_response.get('items', [])
-        if not search_items:
-            return jsonify([])  # 結果がなければ空のリストを返す
-
-        # 後で使うために、動画IDとスニペット（タイトルなど）を保持
-        video_snippets = {item['id']['videoId']: item.get('snippet', {}) for item in search_items}
-        video_ids = list(video_snippets.keys())
-
-        # 2. ２回目のAPI呼び出し: 見つかった全動画の詳細を一度に取得
-        video_details_response = youtube.videos().list(
-            id=','.join(video_ids),
-            part='liveStreamingDetails'  # ライブ配信情報だけ取得すればOK
-        ).execute()
-
-        # 処理とフィルタリング
-        videos = []
-        for item in video_details_response.get('items', []):
-            video_id = item.get('id')
-            details = item.get('liveStreamingDetails')
-            
-            # ライブ配信の詳細があり、実際に開始された動画のみを対象
-            if details and details.get('actualStartTime'):
-                snippet = video_snippets.get(video_id, {})
-                thumbnails = snippet.get('thumbnails', {})
-                # 'high'がなくてもエラーにならないように、中解像度も試す
-                thumbnail_url = thumbnails.get('high', {}).get('url') or thumbnails.get('medium', {}).get('url')
-
-                videos.append({
-                    'title': snippet.get('title', 'No Title'),
-                    'thumbnail': thumbnail_url,
-                    'channelTitle': snippet.get('channelTitle', 'No Channel'),
-                    'videoId': video_id,
-                    'actualStartTime': details.get('actualStartTime')
-                })
         
-        # ライブ配信の開始時間が新しい順に並び替え
-        videos.sort(key=lambda v: v['actualStartTime'], reverse=True)
+        values = result.get('values', [])
 
-        return jsonify(videos)
+        if not values:
+            return jsonify({'error': 'No data found in spreadsheet.'}), 404
+
+        # ヘッダー行を抽出（最初の行がヘッダーと仮定）
+        headers = values[0]
+        data_rows = values[1:]
+
+        # データを辞書のリストに変換
+        all_locations = []
+        for row in data_rows:
+            location = {}
+            for i, header in enumerate(headers):
+                if i < len(row):
+                    location[header] = row[i]
+                else:
+                    location[header] = "" # データがない場合は空文字列
+            all_locations.append(location)
+
+        # クエリパラメータの取得
+        prefecture_query = request.args.get('prefecture', '').lower()
+        title_query = request.args.get('title', '').lower()
+
+        filtered_locations = []
+
+        if prefecture_query:
+            # 都道府県でフィルタリング
+            for loc in all_locations:
+                if loc.get('prefecture', '').lower() == prefecture_query:
+                    filtered_locations.append(loc)
+        elif title_query:
+            # 作品名でフィルタリング
+            for loc in all_locations:
+                if loc.get('title', '').lower() == title_query:
+                    filtered_locations.append(loc)
+        else:
+            # クエリがない場合は全データを返す
+            filtered_locations = all_locations
+
+        return jsonify(filtered_locations)
 
     except Exception as e:
-        # Renderのログに詳細なエラーを出力
         print(traceback.format_exc())
         return jsonify({'error': str(e)}), 500
