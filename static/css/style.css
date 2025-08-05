@@ -1,0 +1,357 @@
+/* static/css/style.css */
+/* 基本設定 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Hiragino Kaku Gothic Pro', 'ヒラギノ角ゴ Pro', 'Yu Gothic Medium', '游ゴシック Medium', 'Yu Gothic', '游ゴシック', sans-serif;
+    color: #333;
+    overflow-x: hidden; /* 横スクロールを防止 */
+}
+
+/* 動く青空の背景 */
+.sky-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: linear-gradient(to bottom, #87CEEB 0%, #B0E0E6 100%);
+    z-index: -1;
+}
+
+#clouds {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: transparent url(https://raw.githubusercontent.com/marcobiedermann/playground/master/three.js/smoke-particles/dist/assets/images/cloud.png) repeat;
+    background-size: cover;
+    animation: move-clouds-back 200s linear infinite;
+    opacity: 0.4;
+}
+
+@keyframes move-clouds-back {
+    from { background-position: 0 0; }
+    to { background-position: 10000px 0; }
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    position: relative; /* z-indexを有効にするため */
+    z-index: 1;
+}
+
+/* ヘッダー */
+.header {
+    text-align: center;
+    margin-bottom: 40px;
+    color: white;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+.header h1 {
+    font-size: 3.8rem;
+    margin-bottom: 10px;
+    font-weight: 900;
+}
+
+.header p {
+    font-size: 1.3rem;
+    opacity: 0.95;
+}
+
+/* 検索セクション（グラスモーフィズム） */
+.search-section {
+    background: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 40px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+}
+
+/* 検索タブ */
+.search-tabs {
+    display: flex;
+    margin-bottom: 25px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.tab-btn {
+    padding: 15px 25px;
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: rgba(0, 0, 0, 0.5);
+    position: relative;
+    transition: color 0.3s ease;
+}
+
+.tab-btn::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: #FF8C00; /* オレンジ */
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.tab-btn.active {
+    color: #000;
+}
+
+.tab-btn.active::after {
+    transform: scaleX(1);
+}
+
+/* 検索フォーム */
+.search-content {
+    display: none;
+    animation: fadeIn 0.5s;
+}
+
+.search-content.active {
+    display: block;
+}
+
+.search-box {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.search-input {
+    flex: 1;
+    padding: 15px 20px;
+    border: none;
+    border-radius: 30px;
+    font-size: 1.1rem;
+    background: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.search-input:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 4px 20px rgba(255,140,0,0.4);
+}
+
+.search-btn {
+    padding: 15px 30px;
+    background: linear-gradient(45deg, #FF8C00, #FFA500); /* オレンジ系 */
+    color: white;
+    border: none;
+    border-radius: 30px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.search-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 25px rgba(255,140,0,0.4);
+}
+
+/* 検索例タグ */
+.city-suggestions p {
+    margin-bottom: 10px;
+    color: #333;
+    font-weight: bold;
+}
+
+.city-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.city-tag {
+    padding: 8px 16px;
+    background: linear-gradient(45deg, #FFD700, #FFC107); /* 黄色系 */
+    color: #333;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.city-tag:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255,193,7,0.4);
+}
+
+/* ローディング */
+.loading-section {
+    text-align: center;
+    background: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 40px;
+    margin: 40px 0;
+    color: #333;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(0,0,0,0.1);
+    border-top: 4px solid #FF8C00;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 結果セクション */
+.result-section {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* 統計 */
+.stats {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin: 40px 0;
+    background: rgba(0, 0, 0, 0.1);
+    padding: 25px;
+    border-radius: 15px;
+}
+
+.stat-item {
+    text-align: center;
+    color: white;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.stat-number {
+    font-size: 2.8rem;
+    font-weight: bold;
+}
+
+/* 聖地カード */
+.seichi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 25px;
+    margin-top: 30px;
+}
+
+.seichi-card {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(5px);
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-left: 5px solid #FF8C00;
+}
+
+.seichi-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+}
+
+.seichi-card h3 {
+    color: #D2691E; /* 濃いオレンジ */
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.category-tag {
+    font-size: 0.8rem;
+    padding: 5px 12px;
+    border-radius: 15px;
+    font-weight: bold;
+    margin-left: auto;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.anime-tag { background: #FFD700; color: #333; }
+.movie-tag { background: #4682B4; color: white; }
+.drama-tag { background: #3CB371; color: white; }
+.anime-movie-tag { background: #FF6347; color: white; }
+
+.location-name {
+    font-weight: bold;
+    color: #0056b3;
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+}
+
+.description {
+    color: #444;
+    line-height: 1.7;
+    margin-bottom: 15px;
+}
+
+.access-info, .famous-scene {
+    background: rgba(255, 255, 255, 0.4);
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+    border-left: 3px solid;
+}
+
+.access-info { border-color: #4682B4; }
+.famous-scene { border-color: #FFD700; }
+
+/* エラーセクション */
+.error-section {
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 40px;
+    margin: 40px 0;
+    text-align: center;
+    border: 1px solid rgba(255, 0, 0, 0.2);
+}
+
+/* スマートフォン対応 */
+@media (max-width: 768px) {
+    .container { padding: 15px; }
+    .header h1 { font-size: 2.8rem; }
+    .header p { font-size: 1.1rem; }
+    .search-section { padding: 20px; }
+    .tab-btn { padding: 12px 15px; font-size: 1rem; }
+    .search-box { flex-direction: column; }
+    .seichi-grid { grid-template-columns: 1fr; gap: 20px; }
+    .seichi-card { padding: 20px; }
+    .seichi-card h3 { font-size: 1.3rem; }
+    .stats { flex-direction: column; gap: 20px; padding: 20px; }
+    .stat-number { font-size: 2.2rem; }
+    .city-tags { justify-content: center; }
+}

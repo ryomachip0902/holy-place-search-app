@@ -1,0 +1,94 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>聖地マップ - 全国の聖地を探そう！</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- 動く雲の背景 -->
+    <div class="sky-container">
+        <div id="clouds"></div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>🌟 聖地マップ 🌟</h1>
+            <p>アニメ・映画・ドラマの聖地を見つけよう！</p>
+        </div>
+
+        <div class="search-section">
+            <!-- 検索タブ -->
+            <div class="search-tabs">
+                <button id="tabPrefecture" class="tab-btn active" onclick="switchTab('prefecture')">都道府県で探す</button>
+                <button id="tabTitle" class="tab-btn" onclick="switchTab('title')">タイトルで探す</button>
+            </div>
+
+            <!-- 都道府県検索フォーム -->
+            <div id="searchByPrefecture" class="search-content active">
+                <div class="search-box">
+                    <input type="text" id="prefectureInput" class="search-input" 
+                           placeholder="都道府県名を入力（例：東京都）" 
+                           list="prefectureList">
+                    <datalist id="prefectureList">
+                        {% for prefecture in prefectures %}
+                        <option value="{{ prefecture }}">
+                        {% endfor %}
+                    </datalist>
+                    <button class="search-btn" onclick="searchSeichi()">🔍 探す</button>
+                </div>
+                <div class="city-suggestions">
+                    <p>💡 検索例：</p>
+                    <div class="city-tags">
+                        <span class="city-tag" onclick="searchPrefecture('東京都')">東京都</span>
+                        <span class="city-tag" onclick="searchPrefecture('京都府')">京都府</span>
+                        <span class="city-tag" onclick="searchPrefecture('神奈川県')">神奈川県</span>
+                        <span class="city-tag" onclick="searchPrefecture('北海道')">北海道</span>
+                        <span class="city-tag" onclick="searchPrefecture('沖縄県')">沖縄県</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- タイトル検索フォーム -->
+            <div id="searchByTitle" class="search-content">
+                <div class="search-box">
+                    <input type="text" id="titleInput" class="search-input" 
+                           placeholder="作品名を入力（例：君の名は。）"
+                           list="titleList">
+                    <datalist id="titleList"></datalist>
+                    <button class="search-btn" onclick="searchSeichi()">🔍 探す</button>
+                </div>
+                 <div class="city-suggestions">
+                    <p>💡 検索例：</p>
+                    <div class="city-tags">
+                        <span class="city-tag" onclick="searchTitle('君の名は。')">君の名は。</span>
+                        <span class="city-tag" onclick="searchTitle('SLAM DUNK')">SLAM DUNK</span>
+                        <span class="city-tag" onclick="searchTitle('すずめの戸締まり')">すずめの戸締まり</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="loadingSection" class="loading-section" style="display: none;">
+            <div class="loading-spinner"></div>
+            <p>スプレッドシートから聖地データを検索中...</p>
+        </div>
+
+        <div id="resultSection" class="result-section" style="display: none;">
+            <div id="statsSection" class="stats"></div>
+            <div id="seichiGrid" class="seichi-grid"></div>
+        </div>
+
+        <div id="errorSection" class="error-section" style="display: none;">
+            <div class="error-message">
+                <h3>🚫 エラーが発生しました</h3>
+                <p id="errorText"></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
